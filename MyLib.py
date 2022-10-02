@@ -1,32 +1,46 @@
 import wx
 import os
 import io
+import numpy
 from ObjectListView import ObjectListView, ColumnDefn
 
+
 class Note(object):
-    def __init__(self,id , marker, source_text, translation_text):
+    def __init__(self, id, marker, source_text, translation_text):
         self.id = id
         self.source_text = source_text
         self.traslation_text = translation_text
         self.marker = marker
 
-def Parse(file : io.TextIOWrapper):
-    text = ""
-    for lines in file:
-        if lines.startswith("msgid"):
-            text += f" {lines.strip()}"
-        elif lines.startswith("msgstr"):
-            text += f" {lines.strip()}"
+
+pairs = []
+
+
+def Parse(file: io.TextIOWrapper):
+    for line in file:
+
+        pairs2 = numpy.array(pairs)
+        print(pairs2)
+
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        if line.startswith('msgid'):
+            if line.startswith('msgid ""'):
+                pairs.append([[], None])
+            else:
+                pairs.append([[line.strip('msgid')], []])
+        elif line.startswith('msgstr'):
+            if line.startswith('msgstr ""'):
+                pairs[-1][1] = []
+            else:
+                pairs[-1][1].append(line.strip('msgstr'))
+        elif pairs[-1][1] is None:
+            pairs[-1][0].append(line)
         else:
-            text += lines.strip()
-    text.split()
+            pairs[-1][1].append(line)
 
-    sourcetxt = []
-
-    for index, word in enumerate(text):
-        if word = "msgid":
-
-
+print(pairs)
 
 
 
