@@ -1,0 +1,114 @@
+#: superset-frontend/src/explore/components/controls/DndColumnSelectControl/Option.tsx:68
+#: superset-frontend/src/explore/components/controls/OptionControls/index.tsx:323
+msgid ""
+"\n"
+"                This filter was inherited from the dashboard's context.\n"
+"                It won't be saved when saving the chart.\n"
+"              "
+msgstr ""
+"\n"
+"                Фильтр был наследован из контекста дашборда.\n"
+"                Это не будет сохранено при сохранении графика.\n"
+"              "
+
+#: superset/tasks/schedules.py:184
+#, python-format
+msgid ""
+"\n"
+"            <b><a href=\"%(url)s\">Explore in Superset</a></b><p></p>\n"
+"            <img src=\"cid:%(msgid)s\">\n"
+"            "
+msgstr ""
+"\n"
+"            <b><a href=“%(url)s”>Исследовать в Superset</a></b><p></p>\n"
+"            <img src=“cid:%(msgid)s”>\n"
+"            "
+
+
+
+#: superset-frontend/src/filters/components/Select/SelectFilterPlugin.tsx:122
+msgid " (excluded)"
+msgstr ""
+
+#: superset-frontend/src/components/Datasource/DatasourceEditor.jsx:235
+msgid " expression which needs to adhere to the "
+msgstr ""
+
+#: superset-frontend/src/components/Datasource/DatasourceEditor.jsx:239
+msgid ""
+" standard to ensure that the lexicographical ordering\n"
+"                      coincides with the chronological ordering. If the\n"
+"                      timestamp format does not adhere to the ISO 8601 standard\n"
+"                      you will need to define an expression and type for\n"
+"                      transforming the string into a date or timestamp. Note\n"
+"                      currently time zones are not supported. If time is stored\n"
+"                      in epoch format, put `epoch_s` or `epoch_ms`. If no "
+"pattern\n"
+"                      is specified we fall back to using the optional defaults on "
+"a per\n"
+"                      database/column name level via the extra parameter."
+msgstr ""
+
+#
+
+#: superset-frontend/plugins/legacy-plugin-chart-partition/src/controlPanel.tsx:91
+#, fuzzy
+msgid "Aggregate Mean"
+msgstr "агрегат"
+
+#: superset-frontend/plugins/legacy-plugin-chart-partition/src/controlPanel.tsx:96
+#, fuzzy
+msgid "Aggregate Sum"
+msgstr "агрегат"
+
+#: superset-frontend/plugins/legacy-plugin-chart-map-box/src/controlPanel.ts:182
+msgid ""
+"Aggregate function applied to the list of points in each cluster to produce the "
+"cluster label."
+msgstr ""
+
+#: superset-frontend/plugins/legacy-plugin-chart-pivot-table/src/controlPanel.ts:74
+#: superset-frontend/plugins/plugin-chart-pivot-table/src/plugin/controlPanel.tsx:137
+msgid ""
+"Aggregate function to apply when pivoting and computing the total rows and columns"
+msgstr ""
+
+#: superset-frontend/plugins/legacy-plugin-chart-pivot-table/src/controlPanel.ts:63
+#: superset-frontend/plugins/plugin-chart-pivot-table/src/plugin/controlPanel.tsx:114
+#, fuzzy
+msgid "Aggregation function"
+msgstr "Python функции"
+
+#: superset-frontend/src/views/CRUD/alert/components/AlertStatusIcon.tsx:92
+msgid "Alert Triggered, In Grace Period"
+msgstr "Сработало оповещение"
+
+
+#: superset-frontend/src/views/CRUD/dashboard/DashboardList.tsx:612
+msgid "Are you sure you want to delete the selected dashboards?"
+msgstr "Вы уверены, что хотите удалить выбранные дашборды?"
+
+#: superset-frontend/src/views/CRUD/data/dataset/DatasetList.tsx:618
+msgid "Are you sure you want to delete the selected datasets?"
+msgstr "Вы уверены, что хотите удалить выбранные датасеты?"
+
+#: superset-frontend/src/views/CRUD/annotationlayers/AnnotationLayersList.tsx:366
+msgid "Are you sure you want to delete the selected layers?"
+msgstr "Вы уверены, что хотите удалить выбранные слои?"
+
+#: superset-frontend/src/views/CRUD/data/savedquery/SavedQueryList.tsx:500
+msgid "Are you sure you want to delete the selected queries?"
+msgstr "Вы уверены, что хотите удалить выбранные запросы?"
+
+#: superset-frontend/src/views/CRUD/csstemplates/CssTemplatesList.tsx:326
+msgid "Are you sure you want to delete the selected templates?"
+msgstr "Вы уверены, что хотите удалить выбранные шаблоны?"
+
+#: superset-frontend/src/dashboard/components/RefreshIntervalModal.tsx:133
+msgid "Are you sure you want to proceed?"
+msgstr "Вы уверены, что хотите продолжить?"
+
+#: superset-frontend/src/components/Datasource/DatasourceModal.tsx:173
+msgid "Are you sure you want to save and apply changes?"
+msgstr "Вы уверены, что хотите сохранить и применить изменения?"
+
