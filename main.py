@@ -5,6 +5,9 @@ from data import data
 from Translate import *
 from configparser import ConfigParser
 import datetime
+from loguru import logger
+
+logger.add("report.log", format="{time} {level} {message}", level="DEBUG", rotation="20KB", compression="zip")
 
 config = ConfigParser()
 config.read("config.ini")
@@ -23,13 +26,27 @@ class SettingsDialog(wx.Dialog):
         panel.SetSizer(vertical_box)
 
         api_label_api = wx.StaticText(panel, label="API-ключ:")
-        self.user_input_api = wx.TextCtrl(panel, wx.ID_ANY, value=config["user"]["API_KEY"])
+        if config["user"]["api_key"] is None:
+            config["user"]["api_key"] = "вставьте ключ"
+        else:
+            self.user_input_api = wx.TextCtrl(panel, wx.ID_ANY, value=config["user"]["api_key"])
 
         api_label_user = wx.StaticText(panel, label="Пользователь:")
-        self.user_input_user = wx.TextCtrl(panel, wx.ID_ANY, value=data.get_pofile().metadata['Last-Translator'])
+
+        self.user_input_user = wx.TextCtrl(panel, wx.ID_ANY, value="")
+
+        if data.get_pofile() is None:
+            self.user_input_user.SetValue("")
+        else:
+            self.user_input_user.SetValue(data.get_pofile().metadata['Last-Translator'])
 
         api_label_email = wx.StaticText(panel, label="Email:")
-        self.user_input_email = wx.TextCtrl(panel, wx.ID_ANY, value=data.get_pofile().metadata['Report-Msgid-Bugs-To'])
+
+        self.user_input_email = wx.TextCtrl(panel, wx.ID_ANY, value="")
+        if data.get_pofile() is None:
+            self.user_input_email.SetValue("")
+        else:
+            self.user_input_email.SetValue(data.get_pofile().metadata['Report-Msgid-Bugs-To'])
 
         horizontal_box.Add(api_label_api, flag=wx.RIGHT, border=10)
         horizontal_box.Add(self.user_input_api, proportion=1)
@@ -93,21 +110,18 @@ class MyFrame(wx.Frame):
         # панель-меню
         menubar = wx.MenuBar()
         fileMenu = wx.Menu()
-        edit = wx.Menu()
         view = wx.Menu()
         translate = wx.Menu()
         about = wx.Menu()
 
         # добавление кнопок на панель окна
         menubar.Append(fileMenu, '&Файл')
-        menubar.Append(edit, '&Правка')
         menubar.Append(view, '&Вид')
         menubar.Append(translate, '&Перевод')
         menubar.Append(about, '&Справка')
 
         # кнопки для панели File
         open_btn = wx.MenuItem(fileMenu, wx.ID_OPEN, 'Открыть')
-        create_btn = wx.MenuItem(fileMenu, wx.ID_FILE, 'Создать')
         save_btn = wx.MenuItem(fileMenu, wx.ID_SAVE, 'Сохранить как')
         setting_btn = wx.MenuItem(fileMenu, wx.ID_SETUP, 'Настройки')
         exit_btn = wx.MenuItem(fileMenu, wx.ID_EXIT, 'Выход', 'Выход из приложения')
@@ -119,9 +133,6 @@ class MyFrame(wx.Frame):
         about_file_btn = wx.MenuItem(about, wx.ID_ABOUT, "Справка о файле")
         about_program_btn = wx.MenuItem(about, wx.ID_ANY, "Справка о программе")
 
-        # кнопки для панели Правка
-        edit_meta_btn = wx.MenuItem(edit, wx.ID_ANY, 'Редактировать метаданные')
-
         # добавление кнопок в view
         self.status = view.Append(wx.ID_VIEW_DETAILS, "показать выделение", kind=wx.ITEM_CHECK)
         self.sort_by_translate = view.Append(wx.ID_ANY, "сортировать по переводу")
@@ -129,7 +140,6 @@ class MyFrame(wx.Frame):
 
         # добавление кнопок в File
         fileMenu.Append(open_btn)
-        fileMenu.Append(create_btn)
         fileMenu.Append(save_btn)
         fileMenu.AppendSeparator()
         fileMenu.Append(setting_btn)
@@ -138,9 +148,6 @@ class MyFrame(wx.Frame):
 
         # добавление кнопок в Translate
         translate.Append(translate_btn)
-
-        # добавление кнопок в edit
-        edit.Append(edit_meta_btn)
 
         # добавление кнопок в about
         about.Append(about_file_btn)
@@ -176,20 +183,20 @@ class MyFrame(wx.Frame):
 
         self.source_text_label = wx.StaticText(panel, label="Исходный текст")
         self.translate_text_label = wx.StaticText(panel, label="Перевод")
+        self.commentary_label = wx.StaticText(panel, label="Комментарии")
 
         '''текстовые поля для отображение элментов-------------------------------------------------------------------'''
 
         self.source_text = wx.TextCtrl(panel, value="", size=(850, 100), style=wx.TE_MULTILINE)
         self.translate_text = wx.TextCtrl(panel, value="", size=(850, 100), style=wx.TE_MULTILINE)
+        self.comments = wx.TextCtrl(panel, value="", size=(300, 200), style=wx.TE_MULTILINE | wx.TE_READONLY)
 
         '''Перевод Выбрать-------------------------------------------------------------------------------------------'''
         values = ["Всё", "Только выделенное", "Только непереведённое", "Непереведённое и выделенное"]
-        self.radiobox = wx.RadioBox(panel, label="Параметры перевода", choices=values,majorDimension=4,
+        self.radiobox = wx.RadioBox(panel, label="Параметры перевода", choices=values, majorDimension=4,
                                     style=wx.RA_SPECIFY_COLS)
         translate_button = wx.Button(panel, wx.ID_ANY, label="Перевести")
         self.select_button = wx.Button(panel, wx.ID_ANY, label="Выбрать")
-
-
 
         '''Status bar------------------------------------------------------------------------------------------------'''
 
@@ -198,15 +205,24 @@ class MyFrame(wx.Frame):
         '''размещение виджетов---------------------------------------------------------------------------------------'''
         vbox.Add(self.dataOlv, proportion=1, flag=wx.EXPAND | wx.BOTTOM, border=5)
 
-        box_for_srctext = wx.BoxSizer(wx.HORIZONTAL)
-        box_for_srctext.Add(self.source_text, proportion=1)
-        vbox.Add(self.source_text_label, flag=wx.ALL, border=3)
-        vbox.Add(box_for_srctext, flag=wx.EXPAND | wx.TOP | wx.BOTTOM, border=5)
+        box_for_top_labels = wx.BoxSizer(wx.HORIZONTAL)
+        box_for_top_labels.Add(self.source_text_label, wx.EXPAND)
+        box_for_top_labels.Add(self.commentary_label)
 
-        box_for_trctext = wx.BoxSizer(wx.HORIZONTAL)
-        box_for_trctext.Add(self.translate_text, proportion=1)
-        vbox.Add(self.translate_text_label, flag=wx.ALL, border=3)
-        vbox.Add(box_for_trctext, flag=wx.EXPAND | wx.TOP, border=5)
+        vbox.Add(box_for_top_labels, flag=wx.EXPAND | wx.RIGHT | wx.LEFT, border=5)
+
+        box_for_text = wx.BoxSizer(wx.VERTICAL)
+        # box_for_text.Add(self.source_text_label, flag=wx.EXPAND | wx.ALL, border=3)
+        box_for_text.Add(self.source_text)
+        box_for_text.Add(self.translate_text_label, flag=wx.TOP | wx.BOTTOM | wx.LEFT, border=5)
+        box_for_text.Add(self.translate_text)
+
+        box_for_all_text = wx.BoxSizer(wx.HORIZONTAL)
+        box_for_all_text.Add(box_for_text, flag=wx.RIGHT, border=5)
+        box_for_all_text.Add(self.comments, proportion=1, flag=wx.EXPAND)
+
+        vbox.Add(box_for_all_text, flag=wx.EXPAND)
+
         box_for_radiobox = wx.BoxSizer(wx.HORIZONTAL)
         box_for_radiobox.Add(self.radiobox)
         box_for_radiobox.Add(translate_button, flag=wx.TOP | wx.LEFT, border=15)
@@ -216,7 +232,6 @@ class MyFrame(wx.Frame):
         '''События---------------------------------------------------------------------------------------------------'''
 
         self.Bind(wx.EVT_MENU, self.on_open, open_btn)
-        # self.Bind(wx.EVT_MENU, self. , create_btn)
         self.Bind(wx.EVT_MENU, self.on_save, save_btn)
         self.Bind(wx.EVT_MENU, self.on_quit, exit_btn)
         self.Bind(wx.EVT_MENU, self.on_translate_menu, translate_btn)
@@ -234,24 +249,26 @@ class MyFrame(wx.Frame):
         self.radiobox.Bind(wx.EVT_RADIOBOX, self.radiobox_event)
 
     '''Обработчики событий-------------------------------------------------------------------------------------------'''
-    def huy(self, event):
-        print('zalupa')
+
     def radiobox_event(self, event):
         data.set_radiobox_selection(self.radiobox.GetSelection())
 
     def on_about_program(self, event):
-        wx.MessageBox(f"лютая прога", caption="Информация о программе", style=wx.OK)
+        wx.MessageBox(f"translatepo beta version", caption="Информация о программе", style=wx.OK)
 
     def on_about(self, event):
-        meta = data.get_pofile().metadata
-        header = data.get_pofile().header
-        wx.MessageBox(f" {header} {meta}", caption="Информация о файле", style=wx.OK)
+        if data.get_pofile() is None:
+            wx.MessageBox("Файл не выбран")
+        else:
+            meta = data.get_pofile().metadata
+            header = data.get_pofile().header
+            wx.MessageBox(f" {header} {meta}", caption="Информация о файле", style=wx.OK)
 
     def on_settings(self, event):
         with SettingsDialog(self) as dialog:
             result = dialog.ShowModal()
             if result == wx.ID_OK:
-                config["user"]["API_KEY"] = dialog.user_input_api.GetValue()
+                config["user"]["api_key"] = dialog.user_input_api.GetValue()
                 config["user"]["translator"] = dialog.user_input_user.GetValue()
                 config["user"]["email"] = dialog.user_input_email.GetValue()
                 with open('config.ini', 'w') as configfile:
@@ -266,6 +283,8 @@ class MyFrame(wx.Frame):
         self.dataOlv.SortBy(2)
 
     def change_text(self, event):
+        if data.get_pofile() is None:
+            return
         id = self.dataOlv.GetSelectedObject().id
         po = data.get_pofile()
         if event.GetEventObject() is self.source_text:
@@ -287,6 +306,7 @@ class MyFrame(wx.Frame):
             po = data.get_pofile()
             self.source_text.SetValue(po[id].msgid)
             self.translate_text.SetValue(po[id].msgstr)
+            self.comments.SetValue(str(self.dataOlv.GetSelectedObject().commentary))
         except AttributeError:
             pass
 
@@ -310,23 +330,30 @@ class MyFrame(wx.Frame):
                     self.statusbar.SetStatusText(f'непереведено {data.get_pofile().percent_translated()} %')
             except IOError:
                 wx.LogError("Cannot open file '%s'.")
+                logger.error("error opening file")
 
     def on_save(self, event):
-        filedialog = wx.FileDialog(
-            self, message="Save file as ...",
-            defaultDir=".",
-            defaultFile="newfile", wildcard="*.*", style=wx.FD_SAVE
-        )
-        if filedialog.ShowModal() == wx.ID_CANCEL:
+        if data.get_pofile() is None:
+            wx.MessageBox('файл не выбран')
             return
-        pathname = filedialog.GetPath()
-        po = data.get_pofile()
-        po.metadata['Report-Msgid-Bugs-To'] = config["user"]["email"]
-        po.metadata['Last-Translator'] = config["user"]["translator"]
-        po.metadata['PO-Revision-Date'] = datetime.datetime.now()
-        data.set_pofile(po)
-        data.get_pofile().save(f"{pathname}.po")
-        data.get_pofile().save_as_mofile(f'{pathname}.mo')
+        else:
+            filedialog = wx.FileDialog(
+                self, message="Save file as ...",
+                defaultDir=".",
+                defaultFile="newfile", wildcard="*.*", style=wx.FD_SAVE
+            )
+            if filedialog.ShowModal() == wx.ID_CANCEL:
+                return
+            pathname = filedialog.GetPath()
+            po = data.get_pofile()
+            po.metadata['Report-Msgid-Bugs-To'] = config["user"]["email"]
+            po.metadata['Last-Translator'] = config["user"]["translator"]
+            po.metadata['PO-Revision-Date'] = datetime.datetime.now()
+            data.set_pofile(po)
+            data.get_pofile().save(f"{pathname}.po")
+            data.get_pofile().save_as_mofile(f'{pathname}.mo')
+
+            logger.info("Save successfully!")
 
     def on_translate_menu(self, event):
         with TranslateDialog(self, title="Параметры") as dialog:
@@ -335,7 +362,7 @@ class MyFrame(wx.Frame):
                 self.on_translate(self)
 
     def on_chekbox_view(self, event):
-        if event.GetEventObject() is self.status:
+        if event.Id == 5042:
             if self.status.IsChecked():
                 self.dataOlv.InstallCheckStateColumn(self.id_column)
                 self.dataOlv.SetObjects(data.get_notes())
@@ -346,24 +373,30 @@ class MyFrame(wx.Frame):
             self.dataOlv.InstallCheckStateColumn(self.id_column)
             self.dataOlv.SetObjects(data.get_notes())
 
+    @logger.catch
     def on_translate(self, event):
-        try:
-            if data.get_radiobox_selection() == 0:
-                translate_all(data.get_pofile(), self.dataOlv)  # перевод всего
-            elif data.get_radiobox_selection() == 1:
-                translate_selected(data.get_pofile(), self.dataOlv)  # перевод только выделенных
-            elif data.get_radiobox_selection() == 2:
-                translate_untranslated(data.get_pofile(), self.dataOlv)  # только непереведённых
-            elif data.get_radiobox_selection() == 3:
-                translate_selected_and_untrans(data.get_pofile(), self.dataOlv)  # непереведённых и выделенных
-        except (NameError):
+        if data.get_pofile() is None:
             wx.MessageBox('файл не выбран')
-
+            return
+        else:
+            try:
+                if data.get_radiobox_selection() == 0:
+                    translate_all(data.get_pofile(), self.dataOlv)  # перевод всего
+                elif data.get_radiobox_selection() == 1:
+                    translate_selected(data.get_pofile(), self.dataOlv)  # перевод только выделенных
+                elif data.get_radiobox_selection() == 2:
+                    translate_untranslated(data.get_pofile(), self.dataOlv)  # только непереведённых
+                elif data.get_radiobox_selection() == 3:
+                    translate_selected_and_untrans(data.get_pofile(), self.dataOlv)  # непереведённых и выделенных
+            except KeyError:
+                error = json.loads(data.get_response_error())["message"]
+                logger.error(f"ошибка API :{error}")
+                wx.MessageBox(f"ошибка API :{error}")
 
 
 app = wx.App()
 frame = MyFrame(None, 'translate')
-frame.SetSize(1000, 700)
+frame.SetSize(1300, 800)
 frame.Center()
 frame.Show()
 app.MainLoop()
