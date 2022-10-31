@@ -23,7 +23,8 @@ def parse(file):
     data.set_pofile(po)
     return po
 
-def refresh(pofile, dataolv: ObjectListView):
+def refresh(pofile, dataolv: ObjectListView, statusbar):
     data.set_pofile(pofile)
     to_note_list(pofile)
     dataolv.SetObjects(data.get_notes())
+    statusbar.SetStatusText(f'переведено {data.get_pofile().percent_translated()} %')

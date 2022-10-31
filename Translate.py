@@ -34,7 +34,7 @@ def translate_part(entries_trans, po, dataOlv):
 
 
 
-def translate_all(po, dataOlv):
+def translate_all(po, dataOlv, self):
     entries = []
     for item in po:
         temp = item.msgid.replace("’", " ")
@@ -45,10 +45,10 @@ def translate_all(po, dataOlv):
 
     for index, item in enumerate(po):
         item.msgstr = entries_trans[index]
-    refresh(po, dataOlv)
+    refresh(po, dataOlv, self.statusbar)
 
 
-def translate_selected(po, dataOlv):
+def translate_selected(po, dataOlv, self):
     entries = []
     cheked_objects = dataOlv.GetCheckedObjects()
     for item in cheked_objects:
@@ -60,10 +60,10 @@ def translate_selected(po, dataOlv):
 
     for index, item in enumerate(cheked_objects):
         po[item.id].msgstr = entries_trans[index]
-    refresh(po, dataOlv)
+    refresh(po, dataOlv, self.statusbar)
 
 
-def translate_untranslated(po, dataOlv):
+def translate_untranslated(po, dataOlv, self):
     entries = []
     for index, item in enumerate(po.untranslated_entries()):
         temp = item.msgid.replace("’", " ")
@@ -74,10 +74,10 @@ def translate_untranslated(po, dataOlv):
 
     for index, item in enumerate(po.untranslated_entries()):
         item.msgstr = entries_trans[index]
-    refresh(po, dataOlv)
+    refresh(po, dataOlv, self.statusbar)
 
 
-def translate_selected_and_untrans(po, dataOlv):
+def translate_selected_and_untrans(po, dataOlv, self):
     entries = []
     id = []
     cheked_objects = dataOlv.GetCheckedObjects()
@@ -92,7 +92,7 @@ def translate_selected_and_untrans(po, dataOlv):
     translate_part(entries_trans, po, dataOlv)
     for index, item in enumerate(id):
         po[item].msgstr = entries_trans[index]
-    refresh(po, dataOlv)
+    refresh(po, dataOlv, self.statusbar)
 
 
     translate_untranslated(po, dataOlv)

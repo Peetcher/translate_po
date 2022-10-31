@@ -291,13 +291,13 @@ class MyFrame(wx.Frame):
             if po[id].msgid == self.source_text.Value:
                 return
             po[id].msgid = self.source_text.Value
-            refresh(po, self.dataOlv)
+            refresh(po, self.dataOlv, self.statusbar)
             self.dataOlv.SelectObject(data.get_notes()[id])
         else:
             if po[id].msgstr == self.translate_text.Value:
                 return
             po[id].msgstr = self.translate_text.Value
-            refresh(po, self.dataOlv)
+            refresh(po, self.dataOlv, self.statusbar)
             self.dataOlv.SelectObject(data.get_notes()[id])
 
     def click_handler(self, event):
@@ -327,7 +327,7 @@ class MyFrame(wx.Frame):
                 with open(pathname, 'r', encoding='utf-8') as file:
                     parse(file.name)
                     self.dataOlv.SetObjects(data.get_notes())
-                    self.statusbar.SetStatusText(f'непереведено {data.get_pofile().percent_translated()} %')
+                    self.statusbar.SetStatusText(f'переведено {data.get_pofile().percent_translated()} %')
             except IOError:
                 wx.LogError("Cannot open file '%s'.")
                 logger.error("error opening file")
@@ -381,13 +381,13 @@ class MyFrame(wx.Frame):
         else:
             try:
                 if data.get_radiobox_selection() == 0:
-                    translate_all(data.get_pofile(), self.dataOlv)  # перевод всего
+                    translate_all(data.get_pofile(), self.dataOlv, self)  # перевод всего
                 elif data.get_radiobox_selection() == 1:
-                    translate_selected(data.get_pofile(), self.dataOlv)  # перевод только выделенных
+                    translate_selected(data.get_pofile(), self.dataOlv, self)  # перевод только выделенных
                 elif data.get_radiobox_selection() == 2:
-                    translate_untranslated(data.get_pofile(), self.dataOlv)  # только непереведённых
+                    translate_untranslated(data.get_pofile(), self.dataOlv, self)  # только непереведённых
                 elif data.get_radiobox_selection() == 3:
-                    translate_selected_and_untrans(data.get_pofile(), self.dataOlv)  # непереведённых и выделенных
+                    translate_selected_and_untrans(data.get_pofile(), self.dataOlv, self)  # непереведённых и выделенных
             except KeyError:
                 error = json.loads(data.get_response_error())["message"]
                 logger.error(f"ошибка API :{error}")
