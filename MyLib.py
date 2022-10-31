@@ -1,5 +1,6 @@
 import polib
 from data import data
+from ObjectListView import ObjectListView
 
 class Note(object):
     def __init__(self, id, source_text, translate_text, commentary):
@@ -48,3 +49,7 @@ def parse(file):
     #    else:
     #        pairs[-1][1].append(line)
     # return pairs
+def refresh(pofile, dataolv: ObjectListView):
+    data.set_pofile(pofile)
+    to_note_list(pofile)
+    dataolv.SetObjects(data.get_notes())

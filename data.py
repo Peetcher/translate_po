@@ -1,14 +1,8 @@
 class Data:
     def __init__(self):
-        self.__msg_pairs = []
         self.__notes = []
         self.__pofile = None
-
-    def get_msgpairs(self):
-        return self.__msg_pairs
-
-    def set_msgpairs(self, someinfo):
-        self.__msg_pairs = someinfo
+        self.__radiobox_selection = 0
 
     def get_notes(self):
         return self.__notes
@@ -22,7 +16,15 @@ class Data:
     def set_pofile(self, someinfo):
         self.__pofile = someinfo
 
+    def get_radiobox_selection(self):
+        return self.__radiobox_selection
+
+    def set_radiobox_selection(self, someinfo):
+        self.__radiobox_selection = someinfo
+
 
 data = Data()
+
+
 
 
