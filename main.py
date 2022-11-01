@@ -1,3 +1,4 @@
+import os, sys
 import wx
 from ObjectListView import ObjectListView, ColumnDefn
 from MyLib import parse
@@ -10,7 +11,18 @@ from loguru import logger
 logger.add("report.log", format="{time} {level} {message}", level="DEBUG", rotation="20KB", compression="zip")
 
 config = ConfigParser()
-config.read("config.ini")
+config_name = 'config.ini'
+
+# путь к каталогу из которого запустился скрипт
+# скрипт или экзешник
+application_path = os.path.dirname(sys.executable)
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(sys.executable)      # путь к каталогу рантайм exe
+elif __file__:
+    application_path = os.path.dirname(__file__)         # путь к каталогу запуск в интерпретаторе
+
+config_path = os.path.join(application_path, config_name)
+config.read(config_path)
 
 
 class SettingsDialog(wx.Dialog):
@@ -271,7 +283,7 @@ class MyFrame(wx.Frame):
                 config["user"]["api_key"] = dialog.user_input_api.GetValue()
                 config["user"]["translator"] = dialog.user_input_user.GetValue()
                 config["user"]["email"] = dialog.user_input_email.GetValue()
-                with open('config.ini', 'w') as configfile:
+                with open(config_path, 'w') as configfile:
                     config.write(configfile)
             else:
                 return
